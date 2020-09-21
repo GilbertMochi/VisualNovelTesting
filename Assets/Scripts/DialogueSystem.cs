@@ -1,26 +1,24 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 public class DialogueSystem : MonoBehaviour
 {
-    public static DialogueSystem instance;
+    public static DialogueSystem Instance;
     public ELEMENTS elements;
-    [HideInInspector]
-    public bool waitingForUserInput = false;
+
+    [HideInInspector] public bool waitingForUserInput = false;
+
     Coroutine speaking = null;
     public bool isSpeaking { get { return speaking != null; } }
-
-    private string targetSpeech = "";
+    public string targetSpeech = "";
 
     [System.Serializable]
     public class ELEMENTS
     {
-        ////<summary>
-        ////The main panel containing all dialogue related elements on the ui
-        ////</summary>
+        ///<summary>
+        ///The main panel containing all dialogue related elements on the ui
+        ///</summary>
         public GameObject speechPanel;
         public TMP_Text speakerNameText;
         public TMP_Text dialogueText;
@@ -32,46 +30,38 @@ public class DialogueSystem : MonoBehaviour
 
     private void Awake()
     {
-        instance = this;
+        Instance = this;
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
 
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    ////<summary>
-    ////override previous text and show it on the speech box
-    ////</summary>
-    public void Say(string speech, string speaker)
+    ///<summary>
+    ///override previous text and show it on the speech box
+    ///</summary>
+    public void Say(string speech, string speaker = "")
     {
         StopSpeaking();
-        DialogueText.text=targetSpeech;//when dialogue is skipped show the target text fully
+        DialogueText.text = targetSpeech;//when dialogue is skipped show the target text fully
         speaking = StartCoroutine(Speaking(speech, false, speaker));
     }
 
-     ////<summary>
-    ////add new text to previous text and show it on the speech box
-    ////</summary>
-    public void SayAdditive(string speech, string speaker)
+    ///<summary>
+    ///add new text to previous text and show it on the speech box
+    ///</summary>
+    public void SayAdditive(string speech, string speaker = "")
     {
         StopSpeaking();
-        DialogueText.text=targetSpeech;//when dialogue is skipped show the target text fully
+        DialogueText.text = targetSpeech;//when dialogue is skipped show the target text fully
         speaking = StartCoroutine(Speaking(speech, true, speaker));
     }
 
     IEnumerator Speaking(string speech, bool additive, string speaker = "")
     {
-        SpeakerNameText.text = determineSpeaker(speaker);
         SpeechPanel.SetActive(true);//make speech panel visible and active
-
+        SpeakerNameText.text = determineSpeaker(speaker);//temporary
         targetSpeech = speech;
 
         //check if text is additive or overriding
@@ -101,8 +91,8 @@ public class DialogueSystem : MonoBehaviour
         while (waitingForUserInput)
         {
             yield return new WaitForEndOfFrame();
-            StopSpeaking();
         }
+        StopSpeaking();
     }
 
     public void StopSpeaking()
@@ -114,15 +104,25 @@ public class DialogueSystem : MonoBehaviour
         speaking = null;
     }
 
+    ///<summary>
+    ///if no new name is given, will return the last known
+    ///</summary>
     string determineSpeaker(string s)
     {
-        //if no new name is given, will give the last known
-
-        string speaker = SpeakerNameText.text;
+        string val = SpeakerNameText.text;//default return value is the current value
         if (s != SpeakerNameText.text && s != "")
         {
-            speaker = (s.ToLower().Contains("narrator")) ? "" : s;
+            val = (s.ToLower().Contains("narrator")) ? "" : s;
         }
-        return speaker;
+        return val;
+    }
+
+    ///<summary>
+    ///stop all speech and close dialogue panel
+    ///</summary>
+    public void Close()
+    {
+        StopSpeaking();
+        SpeechPanel.SetActive(false);
     }
 }
